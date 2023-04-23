@@ -1,0 +1,43 @@
+// based on:
+// https://gist.github.com/ChrisDietrich/41158bc1c315d1e0ba28436a479405a1
+// https://gist.github.com/hax0kartik/e358ce447a4537bcef534aa8de84817c
+#include <idc.idc>
+
+static FuncDump(f, start)
+{
+    auto ea, str, teststr;
+
+    ea = start;
+
+    while( ea != BADADDR )
+    {
+        str = GetFunctionName(ea);
+        if( str != 0 )
+        {
+            // Skip functions whose name is the generic sub_XXX()
+            teststr = sprintf("sub_%X", ea);
+            if( teststr != str )
+            {
+                fprintf(f, "%s 0x%X\n", str, ea);
+            }
+        }
+
+        ea = NextFunction(ea);
+    }
+}
+
+static main() 
+{
+    auto current = GetInputFile();
+    current = AskFile(-1, current, "Where should I write the symbols to?");
+    if(current == 0)
+    {
+        return -1;
+    }
+    auto f = fopen(current, "wb");
+    Message("FuncDump: Start\n");
+
+    FuncDump(f, 0x8000000);
+    fclose(f);
+    Message("FuncDump: Done\n");
+}

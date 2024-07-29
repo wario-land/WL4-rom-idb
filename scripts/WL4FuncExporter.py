@@ -51,6 +51,8 @@ def get_symbol_info(ea):
     elif idc.get_item_size(ea) == 2:
         var_type_str = "unsigned short"
 
+    # var_type_str = idc.guess_type(ea) # this can work but still cannot export struct name or tell us if the variable is unsigned or signed
+
     var_signature = "#define " + idc.get_name(ea) + " (*( volatile " + var_type_str + "*) " + hex(ea + 1) + ")"
     return var_signature
 
@@ -94,8 +96,11 @@ def get_function_info(ea):
     func_type_str = idc.get_type(ea)
 
     if func_type_str is None:
-        # If no type information is available, then it is the IDA pro's problem, we need to manually fix it
-        func_signature = "#define " + func_name + " (( void" + " (*) " + ") " + hex(ea | 1) + ")" + " // -------------------------------- TODO: Fix manually"
+        # If no type information is available, then let IDA pro's guess the type, but we need to double check the result and manually fix it
+        func_guessed_type_str = idc.guess_type(ea)
+        return_type_str = func_guessed_type_str[0:func_guessed_type_str.find("(")]
+        params_str = func_guessed_type_str[func_guessed_type_str.find("(")+1:func_guessed_type_str.find(")")]
+        func_signature = "#define " + func_name + " ((" + return_type_str + " (*) " + params_str + ") " + hex(ea | 1) + ")" + " // -------------------------------- Using guessed function type"
     else:
         return_type_str = func_type_str.split(" ")[0]
         params_str = func_type_str[func_type_str.find("(")+1:func_type_str.find(")")]
@@ -117,8 +122,8 @@ def print_function_calls(func_ea):
                 exist_funcs.append(target)
                 # print(f"Function call found at 0x{ea:X} to function at 0x{target:X}")
                 result_str = get_function_info(target)
-                result_str.replace("__int16", "short")
-                function_define_str_list.append(result_str)
+                substituted_str = result_str.replace("__int16", "short")
+                function_define_str_list.append(substituted_str)
 
                 # test code
                 # print(result_str)

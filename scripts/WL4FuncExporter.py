@@ -100,11 +100,11 @@ def get_function_info(ea):
         func_guessed_type_str = idc.guess_type(ea)
         return_type_str = func_guessed_type_str[0:func_guessed_type_str.find("(")]
         params_str = func_guessed_type_str[func_guessed_type_str.find("(")+1:func_guessed_type_str.find(")")]
-        func_signature = "#define " + func_name + " ((" + return_type_str + " (*) " + params_str + ") " + hex(ea | 1) + ")" + " // -------------------------------- Using guessed function type"
+        func_signature = "#define " + func_name + " ((" + return_type_str + " (*) (" + params_str + ") )" + hex(ea | 1) + ")" + " // -------------------------------- Using guessed function type"
     else:
         return_type_str = func_type_str.split(" ")[0]
         params_str = func_type_str[func_type_str.find("(")+1:func_type_str.find(")")]
-        func_signature = "#define " + func_name + " ((" + return_type_str + " (*) " + params_str + ") " + hex(ea | 1) + ")"
+        func_signature = "#define " + func_name + " ((" + return_type_str + " (*) (" + params_str + ") )" + hex(ea | 1) + ")"
 
     return func_signature
 
